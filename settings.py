@@ -292,3 +292,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Auth
 LOGIN_URL = '/login'
+
+# BrowserID 21600 would be 6 hour sessions
+SESSION_EXP_SECONDS = 21600 
