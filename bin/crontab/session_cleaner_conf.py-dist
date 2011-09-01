@@ -1,0 +1,17 @@
+# OpenLDAP / BrowserID session storage.
+# Lock this down outside of the Django app.
+# Schema is in migrations/04-browserid_session.sql
+# Crontab is in bin/crontab/session_cleaner.py
+
+# -dev this can be the same as settings.py
+# -stage and -prod, this MUST be an isolated db
+BROWSERID_DATABASE = {
+    'NAME': 'mozillians',
+    'USER': 'root',
+    'PASSWORD': '',
+    'HOST': '',
+    'PORT': '',
+}
+
+# BrowserID 21600 would be 6 hour sessions
+SESSION_EXP_SECONDS = 21600
