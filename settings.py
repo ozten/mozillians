@@ -131,6 +131,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.csrf',
     'django.contrib.messages.context_processors.messages',
 
+    'django_browserid.context_processors.browserid_form',
     'commons.context_processors.i18n',
     #'jingo_minify.helpers.build_ids',
 )
@@ -185,6 +186,8 @@ LDAP_USERS_GROUP = 'ou=people,dc=mozillians,dc=org'
 # django-auth-ldap
 AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
+    'browserid.backend.SaslBrowserIDBackend',
+
 )
 
 AUTH_LDAP_USER_SEARCH = LDAPSearch(LDAP_USERS_GROUP, ldap.SCOPE_SUBTREE,
@@ -205,6 +208,8 @@ INSTALLED_APPS = (
     'phonebook',
     'users',
     'larper',
+    'browserid',
+    'django_browserid',  # We use forms, etc but not the auth backend
 
     # Local apps
     'commons',  # Content common to most playdoh-based apps.
@@ -228,7 +233,6 @@ INSTALLED_APPS = (
     # 'django.contrib.sites',
     # 'django.contrib.messages',
     'django.contrib.admin',
-    'django.contrib.auth',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 

@@ -26,8 +26,8 @@ urlpatterns = patterns('',
     (r'', include('landing.urls')),
     (r'', include('phonebook.urls')),
     (r'', include('users.urls')),
-
     (r'^admin/', include(admin.site.urls)),
+    (r'', include('browserid.urls')),
 )
 
 # In DEBUG mode, serve media files through Django, and serve error pages

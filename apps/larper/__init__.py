@@ -42,6 +42,11 @@ from ldap.modlist import addModlist, modifyModlist
 from django.conf import settings
 from django.core import signing
 
+import commonware.log
+
+import browserid
+
+log = commonware.log.getLogger('m.larper')
 
 def get_password(request):
     """ Not sure if this and store_password belong here..."""
@@ -56,6 +61,23 @@ def store_password(request, password):
     password - A clear text password
     """
     request.session['PASSWORD'] = signing.dumps(dict(password=password))
+
+
+def get_assertion(request):
+    """ Not sure if this and store_assertion belong here..."""
+    d = request.session.get('ASSERTION')
+    if d:
+        return signing.loads(d).get('assertion')
+    else:
+        return None
+
+
+def store_assertion(request, assertion):
+    """
+    request - Django web request
+    password - A clear text password
+    """
+    request.session['ASSERTION'] = signing.dumps(dict(assertion=assertion))
 
 
 class NO_SUCH_PERSON(Exception):
@@ -80,6 +102,8 @@ KNOWN_SERVICE_URIS = [
     MOZILLA_IRC_SERVICE_URI,
 ]
 
+KNOWN_USER = re.compile('dn:uniqueIdentifier=([^,]*),ou=people,dc=mozillians,dc=org')
+NEW_USER   = re.compile('dn:uid=([^,]*),cn=browser-id,cn=auth')
 
 class UserSession(object):
     """
@@ -110,12 +134,30 @@ class UserSession(object):
             self.conn = ldap.initialize(server_uri)
 
         if not self._is_bound:
-            dn, password = self.dn_pass()
-            self.conn.bind_s(dn, password)
+            assertion = get_assertion(self.request)
+            if assertion:
+
+                dn = None
+                host = self.request.get_host()
+                sasl_creds = browserid.credentials(assertion, host)
+                log.debug("Going to bind with an assertion=%s and \nhost%s" % (assertion, host))
+
+                print repr(self.conn.sasl_interactive_bind_s("", sasl_creds))
+                log.debug("Okay, and now are we a new user?")
+                new_dn = self.conn.whoami_s()
+                log.debug("New DN=%s" % new_dn)
+                m = KNOWN_USER.match(new_dn)
+                if m:
+                    dn = Person.dn(m.group(1)) # this could be an invalid dn if the user isn't registered
+                    log.debug("Known user, Setting DN to [%s]" % dn)
+            else:
+                dn, password = self.dn_pass()
+                self.conn.bind_s(dn, password)
             self._is_bound = True
             if not hasattr(self.request, CONNECTIONS_KEY):
                 self.request.larper_conns = [{}, {}]
-            if dn not in self.request.larper_conns[0]:
+            if dn and dn not in self.request.larper_conns[0]:
+                # TODO is this a memory leak, or do we ever get ride of these dn entries?
                 self.request.larper_conns[mode][dn] = self.conn
         return self.conn
 
@@ -128,6 +170,24 @@ class UserSession(object):
         """
         unique_id = self.request.user.unique_id
         return (Person.dn(unique_id), get_password(self.request))
+
+    def registered_user(self):
+        """Checks if the current user is registered in the system.
+
+        Returns a two element tuple:
+
+        * boolean - True if the user is registered, False if they are
+                    new.
+        * string - unique_id if they are registered, verified
+                      email address if they are new."""
+        conn = self._ensure_conn(READ)
+        dn = conn.whoami_s()
+        m = KNOWN_USER.match(dn)
+        if m:            
+            return (True, m.group(1))
+        else:
+            m = NEW_USER.match(dn)
+            return (False, m.group(1) if m else "unknown")
 
     def search(self, query):
         """

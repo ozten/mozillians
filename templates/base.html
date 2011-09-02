@@ -46,7 +46,12 @@
           <li><a id="invite" href="{{ url('invite') }}">{{ _('Invite') }}</a></li>
           <li><a id="logout" href="{{ url('logout') }}?next={{ url('login') }}">{{ _('Log Out') }}</a></li>
         {% else %}
-          <li><a id="login" href="{{ url('login') }}">{{ _('Log In') }}</a></li>
+          <li><a id="browserid-login" href="{{ url('login') }}"><img src="{{ MEDIA_URL }}img/browserid_green.png" alt="{{ _('Log in') }}" /></a>
+              <form id="browserid" action="{{ url('browserid_login') }}" method="POST">
+                {{ csrf() }}
+                {{ browserid_form }}
+              </form>
+          </li>
           <li><a id="register" href="{{ url('register') }}">{{ _('Join Us') }}</a></li>
         {% endif %}
       </ul>
@@ -77,6 +82,9 @@
     <div id="copyright">
       <p id="footer-links">
         {% block footer_links %}
+          {% if not user.is_authenticated() %}
+            <a id="login" href="{{ url('login') }}">{{ _('Old School Log In') }}</a> |
+          {% endif %}
           <a href="{{ url('about') }}">
             {{ _('About Mozillians') }}
           </a>
@@ -125,5 +133,6 @@
 {% block js %}{% endblock %}
 
 {# include "includes/webtrends_desktop.html" #}
+<script src="https://browserid.org/include.js" type="text/javascript"></script>
 </body>
 </html>
