@@ -45,6 +45,10 @@ def register(request):
 
 
 def password_change(request):
+    """
+    View wraps django.auth.contrib's password_change view, so that
+    we can override the form as well as logout the user.
+    """
     r = auth.views.password_change(request,
                                    'registration/password_change_form.html',
                                    reverse('login'),
@@ -56,6 +60,10 @@ def password_change(request):
 
 
 def password_reset(request):
+    """
+    View wraps django.auth.contrib's password_reset view, so that
+    we can override the form.
+    """
     r = auth.views.password_reset(request,
                                   False,
                                   'registration/password_reset_form.html',
@@ -68,6 +76,10 @@ def password_reset(request):
 
 
 def password_reset_confirm(request, uidb36=None, token=None):
+    """
+    View wraps django.auth.contrib's password_reset_confirm view, so that
+    we can override the form.
+    """
     r = auth.views.password_reset_confirm(
         request,
         uidb36,
