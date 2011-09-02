@@ -13,7 +13,7 @@ from tower import ugettext as _
 from larper import RegistrarSession
 from phonebook.models import Invite
 from users import forms
-from commons.urlresolvers import reverse
+from funfactory.urlresolvers import reverse
 
 log = commonware.log.getLogger('m.users')
 
