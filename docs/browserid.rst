@@ -7,7 +7,9 @@ How the ...
 
 BrowserID is implemented partially in Django, partially in our 
 LDAP directory, and by using a new LDAP plugin `sasl-browserid`. 
-This allows us to maintain the LARPER security model.
+This allows us to maintain the `LARPER security model`_.
+
+.. _`LARPER security model`: ../apps/larper/__init__.py
 
 .. image:: http://farm7.static.flickr.com/6067/6124318271_c7c0cee305_o.png
     :height: 356px
@@ -143,8 +145,8 @@ bits don't match our requirements.
 We use the `SASL BROWSER-ID`_ authentication mechanism via a plugin running
 under OpenLDAP.
 
-_`django-browserid`: https://github.com/mozilla/django-browserid
-_`SASL BROWSER-ID`: https://github.com/ozten/sasl-browserid
+.. _`django-browserid`: https://github.com/mozilla/django-browserid
+.. _`SASL BROWSER-ID`: https://github.com/ozten/sasl-browserid
 
 STATUS
 ------
