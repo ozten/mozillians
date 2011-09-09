@@ -34,7 +34,7 @@ Let's look at a typical authentication flow.
 
   .. parsed-literal::
 
-     assertion_value\0audience_value\0
+     assertion_value\\0audience_value\\0
 
 6. SASL BROWSER-ID server plugin is loaded and parses inputs.
 
