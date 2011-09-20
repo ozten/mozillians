@@ -49,7 +49,7 @@ import browserid
 log = commonware.log.getLogger('m.larper')
 
 def get_password(request):
-    """ Not sure if this and store_password belong here..."""
+    """Not sure if this and store_password belong here..."""
     d = request.session.get('PASSWORD')
     if d:
         return signing.loads(d).get('password')
@@ -81,14 +81,14 @@ def store_assertion(request, assertion):
 
 
 class NO_SUCH_PERSON(Exception):
-    """ Raised when a search by unique_id fails """
+    """Raised when a search by unique_id fails."""
     pass
 
 
 class INCONCEIVABLE(Exception):
-    """ Raised when something that should not happen,
+    """Raised when something that should not happen,
     happens. If this happens often, this Exception
-    might not mean what you think it means. """
+    might not mean what you think it means."""
     pass
 
 
@@ -250,7 +250,8 @@ class UserSession(object):
         return False
 
     def profile_service_ids(self, person_unique_id):
-        """ Returns a dict that contains remote system ids.
+        """
+        Returns a dict that contains remote system ids.
         Keys for dict include:
 
         * MOZILLA_IRC_SERVICE_URI
@@ -274,7 +275,7 @@ class UserSession(object):
         return services
 
     def _profile_photo_attrs(self, unique_id):
-        """ Returns dict that contains the jpegPhoto key or None """
+        """Returns dict that contains the jpegPhoto key or None."""
         conn = self._ensure_conn(READ)
         search_filter = filter_format("(uniqueIdentifier=%s)", (unique_id,))
         rs = conn.search_s(settings.LDAP_USERS_GROUP, ldap.SCOPE_SUBTREE,
@@ -644,7 +645,7 @@ class SystemId(object):
 
 
 class INVALID_PERSON_DN(Exception):
-    """ A function which expected a valid DN was
+    """A function which expected a valid DN was
     given an invalid DN. Probably didn't contain a
     uniqueIdentifier component."""
     pass
@@ -663,7 +664,7 @@ class RegistrarSession(UserSession):
         UserSession.__init__(self, request)
 
     def dn_pass(self):
-        """ Returns registrar dn and password """
+        """Returns registrar dn and password."""
         return (settings.LDAP_REGISTRAR_DN, settings.LDAP_REGISTRAR_PASSWORD)
 
     def create_person(self, form):
@@ -704,7 +705,7 @@ class AdminSession(UserSession):
         UserSession.__init__(self, request)
 
     def dn_pass(self):
-        """ Returns administrator dn and password """
+        """Returns administrator dn and password."""
         return (settings.LDAP_ADMIN_DN, settings.LDAP_ADMIN_PASSWORD)
 
     def delete_person(self, unique_id):
@@ -746,3 +747,47 @@ def _populate_any(results):
         dn, attrs = result
         people.append(Person.new_from_directory(attrs))
     return people
+
+
+def change_password(unique_id, oldpass, password):
+    """Changes a user's password."""
+    dn = Person.dn(unique_id)
+
+    conn = ldap.initialize(settings.LDAP_SYNC_PROVIDER_URI)
+    try:
+        conn.bind_s(dn, oldpass)
+
+        conn.passwd_s(dn, None, password)
+        log.debug("Changed %s password" % dn)
+        return True
+    except Exception, e:
+        log.error("Password change failed %s", e)
+        return False
+    finally:
+        conn.unbind()
+
+
+def set_password(username, password):
+    """
+    Resets a user's LDAP password.
+    .. warning:
+    *Careful!* This function has the capability to change
+    anyone's password. It should only be used for
+    un-authenticated users from the reset-password email
+    flow.
+
+    *If the user is authenticated*, then 
+    *use the change_password method above*.
+    """
+    conn = ldap.initialize(settings.LDAP_SYNC_PROVIDER_URI)
+    try:
+        conn.bind_s(settings.LDAP_ADMIN_DN,
+                    settings.LDAP_ADMIN_PASSWORD)
+        search_filter = filter_format("(uid=%s)", (username,))
+        rs = conn.search_s(settings.LDAP_USERS_GROUP, ldap.SCOPE_SUBTREE,
+                           search_filter)
+        for dn, attrs in rs:
+            conn.passwd_s(dn, None, password)
+            log.info("Resetting %s password" % dn)
+    finally:
+        conn.unbind()

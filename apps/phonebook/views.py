@@ -13,7 +13,7 @@ import jingo
 from tower import ugettext as _
 
 import commonware.log
-from commons.urlresolvers import reverse
+from funfactory.urlresolvers import reverse
 from larper import UserSession, AdminSession, NO_SUCH_PERSON
 from larper import MOZILLA_IRC_SERVICE_URI
 from phonebook import forms
@@ -114,6 +114,8 @@ def _edit_profile(request, unique_id, new_account):
         initial=dict(unique_id=unique_id))
 
     if person:
+        if request.user.unique_id != person.unique_id:
+            return HttpResponseForbidden()
         if request.method == 'POST':
             form = forms.ProfileForm(request.POST, request.FILES)
             if form.is_valid():

@@ -22,3 +22,5 @@ puppet/manifests/build/
 vagrantconfig_local.yaml
 docs/_build
 bin/crontab/session_cleaner_conf.py
+settings/*local.py
+directory

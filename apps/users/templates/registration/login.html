@@ -11,10 +11,14 @@
   <form method="post" action="{{ url('login') }}?next={{ redirect }}">
     {{ csrf() }}
 
-    <div class="blue-pastels tiny">
+    <div class="blue-pastels">
       <div id="username-container"
         class="field {{ 'error' if form.errors['username'] }}">
         <label for="id_username">{{ _('Email') }}</label>
+
+        <span class="required" title="{{ _('This field is required.') }}">
+          *
+        </span>
 
         {{ form.errors['username'] }}
         {{ form['username'] }}
@@ -23,6 +27,11 @@
       <div id="password-container"
           class="field {{ 'error' if form.errors['password'] }}">
         {{ form['password'].label_tag() }}
+
+        <span class="required" title="{{ _('This field is required.') }}">
+          *
+        </span>
+
         {{ form.errors['password'] }}
         {{ form['password'] }}
       </div>
@@ -31,7 +40,9 @@
     <button type="submit" class="button orange" id="submit">
       {{ _('Log in') }}
     </button>
-
+    <div id="fyp-container">
+      <a href="{{ url('password_reset') }}">{{ _('I forgot my password') }}</a>
+    </div>
     <div class="clear"></div>
   </form>
 {% endblock %}
