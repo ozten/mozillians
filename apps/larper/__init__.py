@@ -120,11 +120,13 @@ class UserSession(object):
         self.conn = None
         self._is_bound = False
 
-    def _ensure_conn(self, mode):
+    def _ensure_conn(self, mode, force_dn_pass=False):
         """
         mode - One of READ or WRITE. Pass WRITE
         if any of the LDAP operations will include
         adding, modifying, or deleting entires.
+        force_dn_pass - TODO this is wack.. if True
+        then we use dn_pass and ignore the session's assertion
         """
         if not self.conn:
             if mode == WRITE:
@@ -135,7 +137,7 @@ class UserSession(object):
 
         if not self._is_bound:
             assertion = get_assertion(self.request)
-            if assertion:
+            if assertion and force_dn_pass == False:
 
                 dn = None
                 host = self.request.get_host()
@@ -673,7 +675,7 @@ class RegistrarSession(UserSession):
         form - An instance of phonebook.forms.RegistrationForm
         returns a string which is the unique_id of the new user.
         """
-        conn = self._ensure_conn(WRITE)
+        conn = self._ensure_conn(WRITE, force_dn_pass=True)
         unique_id = os.urandom(UUID_SIZE).encode('hex')
         form['unique_id'] = unique_id
         new_dn = Person.dn(unique_id)
@@ -714,7 +716,7 @@ class AdminSession(UserSession):
         Note: Does not un-vouch any Mozillians for whom this user
         has vouched.
         """
-        conn = self._ensure_conn(WRITE)
+        conn = self._ensure_conn(WRITE, force_dn_pass=True)
         person_dn = Person.dn(unique_id)
 
         # Kill SystemId or other children

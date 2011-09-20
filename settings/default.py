@@ -33,15 +33,13 @@ PROTOCOL = "https://"
 PORT = 443
 
 ## Media and templates.
-TEMPLATE_DIRS = (path('apps/users/templates'), )
+TEMPLATE_DIRS = base.TEMPLATE_DIRS + (path('apps/users/templates'), )
 
 # List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'jingo.Loader',
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+TEMPLATE_LOADERS = ('jingo.Loader',) + base.TEMPLATE_LOADERS
+
+TEMPLATE_CONTEXT_PROCESSORS = base.TEMPLATE_CONTEXT_PROCESSORS +\
+    ('django_browserid.context_processors.browserid_form',)
 
 MINIFY_BUNDLES = {
     'css': {
@@ -70,6 +68,7 @@ LDAP_USERS_GROUP = 'ou=people,dc=mozillians,dc=org'
 # django-auth-ldap
 AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
+    'browserid.backend.SaslBrowserIDBackend',
 )
 
 AUTH_LDAP_USER_SEARCH = LDAPSearch(LDAP_USERS_GROUP, ldap.SCOPE_SUBTREE,
@@ -88,13 +87,15 @@ INSTALLED_APPS = list(base.INSTALLED_APPS) + [
     'phonebook',
     'users',
     'larper',
+    'browserid',
+    'django_browserid',  # We use forms, etc but not the auth backend
 
     # Local apps
-    'jingo_minify',
-    'tower',  # for ./manage.py extract (L10n)
+    #'jingo_minify',
+    #'tower',  # for ./manage.py extract (L10n)
 
     'django.contrib.admin',
-    'django.contrib.auth',
+    #'django.contrib.auth',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 ]
@@ -107,6 +108,9 @@ HMAC_KEYS = {
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+
+# BrowserID 21600 would be 6 hour sessions
+SESSION_EXP_SECONDS = 21600 
 
 # Email
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
